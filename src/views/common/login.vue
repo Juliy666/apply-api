@@ -29,7 +29,14 @@
             <el-form-item>
               <el-button class="login-btn-submit" type="primary" @click="dataFormSubmit()">登录</el-button>
             </el-form-item>
+            <!-- 注册按钮-->
+            <el-form-item>
+              <el-button class="login-btn-submit" type="primary" @click="registerHandle()">注册</el-button>
+            </el-form-item>
           </el-form>
+
+           <!-- 弹窗,  注册页面 -->
+           <register  type="primary" v-if="registerVisible" ref="register"></register>
         </div>
       </div>
     </div>
@@ -38,6 +45,7 @@
 
 <script>
   import { getUUID } from '@/utils'
+  import Register from './register'
   export default {
     data () {
       return {
@@ -47,6 +55,7 @@
 /*          uuid: '',
           captcha: '' */
         },
+        registerVisible: false,
         dataRule: {
           account: [
             { required: true, message: '帐号不能为空', trigger: 'blur' }
@@ -60,6 +69,9 @@
         },
         captchaPath: ''
       }
+    },
+    components: {
+      Register
     },
     created () {
       this.getCaptcha()
@@ -94,6 +106,13 @@
       getCaptcha () {
         this.dataForm.uuid = getUUID()
         this.captchaPath = this.$http.adornUrl(`/captcha.jpg?uuid=${this.dataForm.uuid}`)
+      },
+      //进入注册页面
+      registerHandle(){
+        this.registerVisible = true
+        this.$nextTick(() => {
+          this.$refs.register.init()
+        })
       }
     }
   }

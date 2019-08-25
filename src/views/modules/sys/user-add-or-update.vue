@@ -4,31 +4,17 @@
     :close-on-click-modal="false"
     :visible.sync="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
-      <el-form-item label="用户名" prop="userName">
-        <el-input v-model="dataForm.userName" placeholder="登录帐号"></el-input>
+      <el-form-item label="用户名" prop="account">
+        <el-input v-model="dataForm.account" placeholder="登录帐号"></el-input>
       </el-form-item>
-      <el-form-item label="密码" prop="password" :class="{ 'is-required': !dataForm.id }">
-        <el-input v-model="dataForm.password" type="password" placeholder="密码"></el-input>
+      <el-form-item label="旧密码" prop="old_pwd" :class="{ 'is-required': !dataForm.id }">
+        <el-input v-model="dataForm.old_pwd" type="text" placeholder="旧密码"></el-input>
       </el-form-item>
-      <el-form-item label="确认密码" prop="comfirmPassword" :class="{ 'is-required': !dataForm.id }">
-        <el-input v-model="dataForm.comfirmPassword" type="password" placeholder="确认密码"></el-input>
+      <el-form-item label="新密码" prop="new_pwd" :class="{ 'is-required': !dataForm.id }">
+        <el-input v-model="dataForm.new_pwd" type="text" placeholder="新密码"></el-input>
       </el-form-item>
-      <el-form-item label="邮箱" prop="email">
-        <el-input v-model="dataForm.email" placeholder="邮箱"></el-input>
-      </el-form-item>
-      <el-form-item label="手机号" prop="mobile">
-        <el-input v-model="dataForm.mobile" placeholder="手机号"></el-input>
-      </el-form-item>
-      <el-form-item label="角色" size="mini" prop="roleIdList">
-        <el-checkbox-group v-model="dataForm.roleIdList">
-          <el-checkbox v-for="role in roleList" :key="role.roleId" :label="role.roleId">{{ role.roleName }}</el-checkbox>
-        </el-checkbox-group>
-      </el-form-item>
-      <el-form-item label="状态" size="mini" prop="status">
-        <el-radio-group v-model="dataForm.status">
-          <el-radio :label="0">禁用</el-radio>
-          <el-radio :label="1">正常</el-radio>
-        </el-radio-group>
+      <el-form-item label="确认密码" prop="confirm_pwd" :class="{ 'is-required': !dataForm.id }">
+        <el-input v-model="dataForm.confirm_pwd" type="password" placeholder="确认密码"></el-input>
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -43,31 +29,17 @@
   export default {
     data () {
       var validatePassword = (rule, value, callback) => {
-        if (!this.dataForm.id && !/\S/.test(value)) {
+        if ( !/\S/.test(value)) {
           callback(new Error('密码不能为空'))
         } else {
           callback()
         }
       }
       var validateComfirmPassword = (rule, value, callback) => {
-        if (!this.dataForm.id && !/\S/.test(value)) {
+        if ( !/\S/.test(value)) {
           callback(new Error('确认密码不能为空'))
-        } else if (this.dataForm.password !== value) {
+        } else if (this.dataForm.new_pwd !== value) {
           callback(new Error('确认密码与密码输入不一致'))
-        } else {
-          callback()
-        }
-      }
-      var validateEmail = (rule, value, callback) => {
-        if (!isEmail(value)) {
-          callback(new Error('邮箱格式错误'))
-        } else {
-          callback()
-        }
-      }
-      var validateMobile = (rule, value, callback) => {
-        if (!isMobile(value)) {
-          callback(new Error('手机号格式错误'))
         } else {
           callback()
         }
@@ -77,32 +49,23 @@
         roleList: [],
         dataForm: {
           id: 0,
-          userName: '',
-          password: '',
-          comfirmPassword: '',
-          salt: '',
-          email: '',
-          mobile: '',
-          roleIdList: [],
-          status: 1
+          account: '',
+          old_pwd: '',
+          new_pwd: '',
+          confirm_pwd: '',
         },
         dataRule: {
-          userName: [
+          account: [
             { required: true, message: '用户名不能为空', trigger: 'blur' }
           ],
-          password: [
+          old_pwd: [
             { validator: validatePassword, trigger: 'blur' }
           ],
-          comfirmPassword: [
+          new_pwd: [
+            { validator: validatePassword, trigger: 'blur' }
+          ],
+          confirm_pwd: [
             { validator: validateComfirmPassword, trigger: 'blur' }
-          ],
-          email: [
-            { required: true, message: '邮箱不能为空', trigger: 'blur' },
-            { validator: validateEmail, trigger: 'blur' }
-          ],
-          mobile: [
-            { required: true, message: '手机号不能为空', trigger: 'blur' },
-            { validator: validateMobile, trigger: 'blur' }
           ]
         }
       }
@@ -145,22 +108,19 @@
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
             this.$http({
-              url: this.$http.adornUrl(`/sys/user/${!this.dataForm.id ? 'save' : 'update'}`),
-              method: 'post',
+              url: this.$http.adornUrl('v1/change'),
+              method: 'put',
               data: this.$http.adornData({
                 'userId': this.dataForm.id || undefined,
-                'username': this.dataForm.userName,
-                'password': this.dataForm.password,
-                'salt': this.dataForm.salt,
-                'email': this.dataForm.email,
-                'mobile': this.dataForm.mobile,
-                'status': this.dataForm.status,
-                'roleIdList': this.dataForm.roleIdList
+                'account': this.dataForm.account,
+                'old_pwd': this.dataForm.old_pwd,
+                'new_pwd': this.dataForm.new_pwd,
+                'confirm_pwd': this.dataForm.confirm_pwd
               })
             }).then(({data}) => {
               if (data && data.code === 0) {
                 this.$message({
-                  message: '操作成功',
+                  message: '修改密码成功',
                   type: 'success',
                   duration: 1500,
                   onClose: () => {
